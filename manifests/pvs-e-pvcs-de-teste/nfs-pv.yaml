@@ -1,0 +1,97 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-nginx-videos
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  storageClassName: videos
+  mountOptions:
+    - hard
+    - nfsvers=4
+  nfs:
+    path: /videos
+    server: 185.137.92.52
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-nginx-images
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  storageClassName: images
+  mountOptions:
+    - hard
+    - nfsvers=4
+  nfs:
+    path: /media
+    server: 185.137.92.52
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-nginx-viewed
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  storageClassName: viewed
+  mountOptions:
+    - hard
+    - nfsvers=4
+  nfs:
+    path: /viewed
+    server: 185.137.92.52
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-nginx-most-viewed
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  storageClassName: most-viewed
+  mountOptions:
+    - hard
+    - nfsvers=4
+  nfs:
+    path: /most-viewed
+    server: 185.137.92.52
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-nginx-hls
+spec:
+  capacity:
+    storage: 3Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  storageClassName: hls
+  mountOptions:
+    - hard
+    - nfsvers=4
+  nfs:
+    path: /hls
+    server: 185.137.92.52

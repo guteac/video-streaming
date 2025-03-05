@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Travel Experience</title>
+
+  <link rel="icon" href="http://travelexperience.site/images/travel.png" type="image/x-icon">
+
+  <!-- CSS do Plyr -->
+  <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #cac2c2;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      margin: 20px 0;
+      color: #413e57;
+    }
+
+    .videos-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .video-container {
+      width: 360px; /* Largura fixa */
+      height: 200px;
+      background: rgb(248, 248, 248);
+      /* border: 1px solid rgb(104, 102, 102); */
+      border-radius: 4px;
+      box-shadow: 0px 2px 2px rgba(117, 116, 116, 0.6);
+      overflow: hidden;
+      position: relative;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Oculta os controles inicialmente */
+    .plyr--video .plyr__controls {
+      display: none;
+    }
+
+    /* Mostra os controles somente durante a reprodução */
+    .plyr--playing .plyr__controls {
+      display: flex;
+    }
+
+    /* Estilizando o botão grande de play */
+    .plyr__control--overlaid {
+      background-color: rgba(117, 116, 116, 0.4); /* Cor de fundo */
+      color: rgba(255, 255, 255, 0.5); /* Cor do ícone */
+      position: absolute;
+      transform: translate(-50%, -90%);
+    }
+
+    /* Estilo da bolinha girando */
+    .spinner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 2s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+      }
+      100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <br>
+  <h1>Let's Explore the World!</h1>
+  <br><br><br>
+  <div class="videos-container">
+    <div class="video-container">
+      <video id="player1" controls crossorigin playsinline poster="http://travelexperience.site/images/England.jpg"></video>
+      <div class="spinner" id="spinner1"></div>
+    </div>
+    <div class="video-container">
+      <video id="player2" controls crossorigin playsinline poster="http://travelexperience.site/images/France.jpg"></video>
+      <div class="spinner" id="spinner2"></div>
+    </div>
+    <div class="video-container">
+      <video id="player3" controls crossorigin playsinline poster="http://travelexperience.site/images/Dubai.jpg"></video>
+      <div class="spinner" id="spinner3"></div>
+    </div>
+    <div class="video-container">
+      <video id="player4" controls crossorigin playsinline poster="http://travelexperience.site/images/India.jpg"></video>
+      <div class="spinner" id="spinner4"></div>
+    </div>
+    <div class="video-container">
+      <video id="player5" controls crossorigin playsinline poster="http://travelexperience.site/images/Italy.jpg"></video>
+      <div class="spinner" id="spinner5"></div>
+    </div>
+    <div class="video-container">
+      <video id="player6" controls crossorigin playsinline poster="http://travelexperience.site/images/Maldives.jpg"></video>
+      <div class="spinner" id="spinner6"></div>
+    </div>
+  </div>
+
+  <!-- JavaScript do Plyr -->
+  <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+  <!-- JavaScript do hls.js -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const videos = [
+        { id: "player1", source: "http://185.137.92.52:11000/hls/england.m3u8", videoId: "england", spinnerId: "spinner1" },
+        { id: "player2", source: "http://185.137.92.52:11000/hls/france.m3u8", videoId: "france", spinnerId: "spinner2" },
+        { id: "player3", source: "http://185.137.92.52:11000/hls/dubai.m3u8", videoId: "dubai", spinnerId: "spinner3" },
+        { id: "player4", source: "http://185.137.92.52:11000/hls/india.m3u8", videoId: "india", spinnerId: "spinner4" },
+        { id: "player5", source: "http://185.137.92.52:11000/hls/italy.m3u8", videoId: "italy", spinnerId: "spinner5" },
+        { id: "player6", source: "http://185.137.92.52:11000/hls/maldives.m3u8", videoId: "maldives", spinnerId: "spinner6" },
+      ];
+
+      const requestVideoStream = async (videoId) => {
+        let isMostViewed = await checkMostViewed(videoId);
+        if (isMostViewed) {
+          return isMostViewed;//muda a source para /most-viewed
+        }
+        const isViewed = await checkViewed(videoId);
+        if (isViewed) {
+          const containerUP = await checkContainer(videoId);
+          if (containerUP) {
+            console.log("Container UP");
+            return null;//nao muda a source
+          } else {
+            console.log("No Container");
+            const moved = await moveMostViewed(videoId);
+            console.log("Movidos para most viewed");
+            let isMostViewed = await checkMostViewed(videoId);
+            if (isMostViewed && moved) {
+              console.log("Mudou de source");
+              return isMostViewed;//muda a source para /most-viewed
+            }
+          }
+        } else {
+          started = await startVideo(videoId);
+          return null;//nao muda a source
+        }
+      };
+
+      const checkMostViewed = async (videoId) => {
+        try {
+          const data = encodeURIComponent(videoId);
+          const response = await fetch('http://185.137.92.52:11000/cgi-bin/check-most-viewed.cgi', {
+            method: 'POST',
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: data,
+          });
+
+          if (response.ok) {
+            const newSource = await response.text();
+            return newSource;
+          } else {
+            return null;
+          }
+        } catch (error) {
+          console.error('Erro ao enviar requisição:', error);
+        }
+      };
+
+      const checkViewed = async (videoId) => {
+        try {
+          const data = encodeURIComponent(videoId);
+          const response = await fetch('http://185.137.92.52:11000/cgi-bin/check-viewed.cgi', {
+            method: 'POST',
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: data,
+          });
+
+          if (response.ok) {
+            const newSource = await response.text();
+            return true;
+          } else {
+            return false;
+          }
+        } catch (error) {
+          console.error('Erro ao enviar requisição:', error);
+        }
+      };
+
+      const checkContainer = async (videoId) => {
+        try {
+          const data = encodeURIComponent(videoId);
+          const response = await fetch('http://185.137.92.52:11000/cgi-bin/check-container.cgi', {
+          method: 'POST',
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: data,
+        });
+        if (response.ok) {
+            return true;
+          } else {
+            return false;
+          }
+        } catch (error) {
+          console.error('Erro ao enviar requisição:', error);
+        }
+      };
+
+      const moveMostViewed = async (videoId) => {
+        try {
+          const data = encodeURIComponent(videoId);
+          const response = await fetch('http://185.137.92.52:11000/cgi-bin/move-most-viewed.cgi', {
+          method: 'POST',
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: data,
+        });
+        if (response.ok) {
+            return true;
+          } else {
+            return false;
+          }
+        } catch (error) {
+          console.error('Erro ao enviar requisição:', error);
+        }
+      };
+
+      const startVideo = async (videoId) => {
+        try {
+          const data = encodeURIComponent(videoId);
+          console.log(`Iniciando container`);
+          const response = await fetch('http://185.137.92.52:11000/cgi-bin/start-video.cgi', {
+          method: 'POST',
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: data,
+        });
+        if (response.ok) {
+            return true;
+          } else {
+            return false;
+          }
+        } catch (error) {
+          console.error('Erro ao enviar requisição:', error);
+        }
+      };
+
+      const initializePlayer = (videoElement, source, videoId, spinnerElement) => {
+        let retryInterval = null; // Intervalo de re-tentativa para o debug HLS
+        let requestHLSSent = false; // Controle para garantir que a requisição só seja enviada uma vez
+
+        // Exibe o spinner enquanto carrega
+        const showSpinner = () => {
+          console.log("Show spinner")
+          spinnerStartTime = Date.now();
+          spinnerElement.style.display = 'block';
+        };
+
+        // Oculta o spinner quando o vídeo estiver pronto para reprodução
+        const hideSpinner = (videoId) => {
+          console.log("Hide spinner")
+          const duration = (Date.now() - spinnerStartTime)/1000;
+          //sendSpinnerDuration(videoId, String(duration));
+          spinnerStartTime = null;
+          spinnerElement.style.display = 'none';
+        };
+
+        async function sendSpinnerDuration(videoId, duration) {
+          const url = 'http://185.137.92.52:8000/spinner-duration';
+
+          // Dados que serão enviados no corpo da requisição
+          const data = {
+            videoId: videoId,
+            duration: duration
+          };
+
+          try {
+            const response = await fetch(url, {
+              method: 'POST', // Método da requisição
+              headers: {
+                'Content-Type': 'application/json' // Tipo de conteúdo JSON
+              },
+              body: JSON.stringify(data) // Converte os dados para JSON
+            });
+
+            // Verifica se a requisição foi bem-sucedida
+            if (response.ok) {
+              const result = await response.json();
+              console.log('Resposta do servidor:', result);
+            } else {
+              console.error('Erro na requisição:', response.status, response.statusText);
+            }
+          } catch (error) {
+            console.error('Erro ao fazer a requisição:', error);
+          }
+        }
+
+        // Configura o HLS
+        const setupHLS = (source) => {
+          const hls = new Hls({
+            startPosition: 0, // Define explicitamente para começar do início do fluxo
+          });
+          let startedFromBeginning = false;
+
+          hls.loadSource(source);
+
+          // Evento de manifesto carregado com sucesso
+          hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            console.log(`Manifesto HLS carregado com sucesso para ${videoId}.`);
+            stopRetry(); // Para o intervalo de re-tentativa
+            videoElement.play().catch((err) => {
+              console.error(`Erro ao reproduzir o vídeo ${videoId}:`, err);
+            });
+            hideSpinner(videoId); // Esconde o spinner quando o HLS estiver carregado
+          });
+
+            // Evento para ajustar a reprodução ao primeiro segmento
+          hls.on(Hls.Events.FRAG_LOADED, (_, data) => {
+            if (!startedFromBeginning && data.frag.sn === 0) {
+              console.log(`Reproduzindo o primeiro segmento do vídeo ${videoId}.`);
+              videoElement.currentTime = 0; // Garante que começa no primeiro segmento
+              startedFromBeginning = true;
+              videoElement.play().catch((err) => {
+                console.error(`Erro ao iniciar reprodução para ${videoId}:`, err);
+              });
+            }
+          });
+
+          // Evento de erro
+          hls.on(Hls.Events.ERROR, (event, data) => {
+            if (data.details === Hls.ErrorDetails.MANIFEST_LOAD_ERROR) {
+              console.warn(`Manifesto HLS não encontrado para ${videoId}. Tentando novamente...`);
+              startRetry(hls); // Inicia o intervalo de re-tentativa
+            }
+          });
+
+          hls.attachMedia(videoElement);
+        };
+
+        // const preProcessedHLS = (videoElement, videoId) => {
+        //   return new Promise((resolve, reject) => {
+        //     const preProcSource = "http://185.137.92.52:8080/pre-proc-videos/"+videoId+".m3u8";
+        //     const hls = new Hls();
+        //     let isCompleted = false;
+
+        //     console.log(preProcSource);
+
+        //     hls.loadSource(preProcSource);
+        //     hls.attachMedia(videoElement);
+
+        //     hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        //       console.log(`Manifesto pré-processado carregado para ${videoId}.`);
+        //       videoElement.play().catch((err) => {
+        //         console.error(`Erro ao iniciar o vídeo pré-processado para ${videoId}:`, err);
+        //         reject(err);
+        //       });
+        //     });
+
+        //     videoElement.addEventListener('ended', () => {
+        //       console.log('Reprodução completa!');
+        //       // Insira aqui as ações desejadas após a reprodução terminar
+        //     });
+
+        //     // // Monitora quando o pré-processamento termina
+        //     // hls.on(Hls.Events.ENDED, (_, data) => {
+        //     //   console.log("Entrou aqui");
+        //     //   if (data.frag.sn === 10 && !isCompleted) { // Assumindo que cada segmento é 1 segundo
+        //     //     console.log(`Segmentos pré-processados concluídos para ${videoId}.`);
+        //     //     isCompleted = true;
+        //     //     hls.destroy(); // Desanexa o HLS do vídeo pré-processado
+        //     //     resolve(); // Notifica que o pré-processamento foi concluído
+        //     //   }
+        //     // });
+
+        //   });
+        // };
+
+        // Inicia o intervalo de re-tentativa
+        const startRetry = (hlsInstance) => {
+          if (!retryInterval) {
+            retryInterval = setInterval(() => {
+              console.log(`Tentando carregar novamente o manifesto HLS para ${videoId}...`);
+              hlsInstance.loadSource(source);
+            }, 100); // Re-tenta a cada 5 segundos
+          }
+        };
+
+        // Para o intervalo de re-tentativa
+        const stopRetry = () => {
+          if (retryInterval) {
+            clearInterval(retryInterval);
+            retryInterval = null;
+          }
+        };
+
+        // Inicializa o Plyr
+        const player = new Plyr(videoElement, {
+          controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'fullscreen'],
+        });
+
+        player.on('play', async () => {
+          if (!requestHLSSent) {
+            const newSource = await requestVideoStream(videoId); // Chama a função de requisição
+            if (newSource) {
+              console.log(`Atualizando source do vídeo ${videoId} para: ${newSource}`);
+              setupHLS(newSource);//Isso é onde pede os segmentos HLS
+              requestHLSSent = true; 
+              showSpinner(); 
+ 
+            } else { // Se não retornar uma source, vai começar o stream do vídeo
+              try {
+                setupHLS(source); 
+                requestHLSSent = true; 
+                showSpinner();
+              } catch (error) {
+                console.error(`Erro durante o processamento HLS para ${videoId}:`, error);
+                // Lógica adicional de fallback, se necessário
+              }
+            }
+          }
+        });
+      };
+
+      videos.forEach(({ id, source, videoId, spinnerId }) => {
+        const videoElement = document.getElementById(id);
+        const spinnerElement = document.getElementById(spinnerId);
+        initializePlayer(videoElement, source, videoId, spinnerElement);
+      });
+    });
+  </script>
+</body>
+
+</html>

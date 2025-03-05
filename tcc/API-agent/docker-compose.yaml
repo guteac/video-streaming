@@ -1,0 +1,16 @@
+services:
+  api-agent:
+    container_name: api-agent-container
+    build: . 
+    image: guteactestdocker/api-agent:v4
+    restart: always
+    ports:
+      - 8001:8000
+    # volumes:
+    #   - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - stream-service
+    
+networks:
+  stream-service:
+    external: true

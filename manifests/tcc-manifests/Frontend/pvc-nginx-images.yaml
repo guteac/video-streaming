@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-nginx-images
+spec:
+  storageClassName: images
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi

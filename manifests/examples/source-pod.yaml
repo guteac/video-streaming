@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: source-pod
+  namespace: source-namespace
+spec:
+  containers:
+  - name: busybox
+    image: yauritux/busybox-curl
+    command: ["/bin/sh", "-c", "sleep 3600"]

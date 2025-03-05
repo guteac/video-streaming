@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: frontend
+  name: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      volumes:
+        - name: media
+          persistentVolumeClaim:
+            claimName: pvc-nginx-images
+      containers:
+        - image: guteactestdocker/frontend:v2
+          name: frontend
+          ports:
+            - containerPort: 80   # Porta HTTP
+          volumeMounts:
+            - mountPath: "/media"
+              name: media

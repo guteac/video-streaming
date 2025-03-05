@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: my-nginx-dep
+  name: my-nginx-dep
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      volumes:
+      - name: nginx-pv-videos
+        persistentVolumeClaim:
+          claimName: pvc-nginx-videos
+      - name: nginx-pv-images
+        persistentVolumeClaim:
+          claimName: pvc-nginx-images
+      - name: nginx-pv-viewed
+        persistentVolumeClaim:
+          claimName: pvc-nginx-viewed
+      - name: nginx-pv-most-viewed
+        persistentVolumeClaim:
+          claimName: pvc-nginx-most-viewed
+      containers:
+      - image: nginx
+        name: nginx
+        volumeMounts:
+          - mountPath: "/data/videos"
+            name: nginx-pv-videos
+          - mountPath: "/data/images"
+            name: nginx-pv-images
+          - mountPath: "/data/viewed"
+            name: nginx-pv-viewed
+          - mountPath: "/data/most-viewed"
+            name: nginx-pv-most-viewed

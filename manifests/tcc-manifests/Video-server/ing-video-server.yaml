@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: video-server-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: video-server.demo.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: svc-video-server-http
+            port:
+              number: 8081

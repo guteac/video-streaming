@@ -1,0 +1,12 @@
+services:
+  nfs:
+    image: itsthenetwork/nfs-server-alpine:12
+    container_name: NFS-Travel-Experience
+    restart: unless-stopped
+    privileged: true
+    environment:
+      - SHARED_DIRECTORY=/data
+    volumes:
+      - ./nfs-shared:/data
+    ports:
+      - 2049:2049

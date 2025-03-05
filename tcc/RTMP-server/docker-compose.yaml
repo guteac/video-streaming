@@ -1,0 +1,15 @@
+services:
+  video-server:
+    container_name: video-server-container
+    build: .
+    image: nginx-video-server
+    restart: always
+    ports:
+      - 1935:1935 #Abrir porta RTMP
+      - 8081:80
+    networks:
+      - stream-service
+    
+networks:
+  stream-service:
+    external: true

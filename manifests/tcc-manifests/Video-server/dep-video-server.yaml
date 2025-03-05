@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: video-server
+  name: video-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: video-server
+  template:
+    metadata:
+      labels:
+        app: video-server
+    spec:
+      volumes:
+        - name: hls
+          persistentVolumeClaim:
+            claimName: pvc-video-server-hls
+        - name: most-viewed
+          persistentVolumeClaim:
+            claimName: pvc-video-server-most-viewed
+      containers:
+        - image: guteactestdocker/video-server:v8
+          name: video-server
+          ports:
+            - containerPort: 1935 # Porta RTMP
+            - containerPort: 80   # Porta HTTP
+          volumeMounts:
+            - mountPath: "/usr/local/nginx/html/stream/hls"
+              name: hls
+            - mountPath: "/usr/local/nginx/html/stream/most-viewed"
+              name: most-viewed
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "200Mi"
+            limits:
+              cpu: "400m"
+              memory: "400Mi"

@@ -1,0 +1,17 @@
+services:
+  frontend:
+    container_name: frontend-container
+    build: .
+    image: nginx-frontend
+    restart: always
+    ports:
+      - 80:80 #Abrir porta http
+    volumes:
+      - ./html:/usr/share/nginx/html:ro #Volume para mexer no estilo do player sem precisar reiniciar o server
+      - ./media:/media
+    networks:
+      - stream-service
+    
+networks:
+  stream-service:
+    external: true

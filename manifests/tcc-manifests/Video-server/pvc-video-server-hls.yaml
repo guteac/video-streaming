@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-video-server-hls
+spec:
+  storageClassName: hls
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 3Gi
